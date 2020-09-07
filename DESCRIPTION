@@ -1,0 +1,22 @@
+Package: Covid19CanadaTrends
+Title: COVID-19 Trends in Canada
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Jean-Paul",
+           middle = "R",
+           family = "Soucy",
+           role = c("aut", "cre"),
+           email = "jeanpaul.r.soucy@gmail.com",
+           comment = c(ORCID = "0000-0002-8422-2326"))
+Description: Calculate and summarize Canadian COVID-19 trends using the COVID-19 Open Data Working Group dataset.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    dplyr,
+    zoo,
+    emo (>= 0.0.0.9000)
+Remotes:  
+    hadley/emo
