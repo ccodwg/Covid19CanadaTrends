@@ -17,13 +17,14 @@ trends_rolling_average(
   print_val_digits = 1,
   min_val_before = NULL,
   min_val_new = NULL,
+  output_lines = NULL,
   file
 )
 }
 \arguments{
 \item{x}{The time series for which to calculate the rolling average.}
 
-\item{stat}{The stat of the time series. One of "cases", "mortality", "active', or "testing".}
+\item{stat}{The stat of the time series. One of "cases", "mortality", "active", or "testing".}
 
 \item{new_date}{The date for which to calculate the percent change since the previous date (by default, the most recent date the dataset was updated).}
 
@@ -45,6 +46,8 @@ trends_rolling_average(
 
 \item{min_val_new}{Optional. If set, remove locations with values below the stated number on the new date (see Details).}
 
+\item{output_lines}{Optional. The number of lines to output (default: keep all lines).}
+
 \item{file}{A character string for the path and name of the output file.}
 }
 \value{
@@ -54,5 +57,5 @@ A text file summarizing the trends in the selected value over a particular time 
 Calculate and summarize percent change in rolling average in tweetable form
 }
 \details{
-The arguments \code{min_val_before} and \code{min_val_new} can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500\% increase but a small absolute change. Setting either \code{min_val_before} to a value > 0.1 or \code{min_val_new} to a value > 0.6 would censor this health region.
+The arguments \code{min_val_before} and \code{min_val_new} can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500\% increase but a small absolute change. Setting either \code{min_val_before} to a value > 0.1 or \code{min_val_new} to a value > 0.6 would censor this health region. Setting \code{min_val_before} to 0 implicitly censors locations with 0 to > 0 and 0 to 0, whereas setting \code{min_val_after} to 0 implicitly censors locations with percent change = -100\% and 0 to 0.
 }

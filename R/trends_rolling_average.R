@@ -22,7 +22,7 @@ rolling_average <- function(x, window_days = 7) {
 #'
 #' @name trends_rolling_average
 #' @param x The time series for which to calculate the rolling average.
-#' @param stat The stat of the time series. One of "cases", "mortality", "active', or "testing".
+#' @param stat The stat of the time series. One of "cases", "mortality", "active", or "testing".
 #' @param new_date The date for which to calculate the percent change since the previous date (by default, the most recent date the dataset was updated).
 #' @param loc The locations for which to calculate trends. One of "all_prov" (all provinces), "all_hr" (all health regions), a vector of 2-letter province codes, or a vector of 4-number health region codes.
 #' @param before_days The number of days before `new_date` to compare with to calculate the percent change (default: 7).
@@ -33,15 +33,16 @@ rolling_average <- function(x, window_days = 7) {
 #' @param print_val_digits The number of digits to print for absolute values (defaults to 1). Used if `print_val` is TRUE and when a location goes from 0/day on the before date to > 0/day on the new date.
 #' @param min_val_before Optional. If set, remove locations with values below the stated number on the before date (see Details).
 #' @param min_val_new Optional. If set, remove locations with values below the stated number on the new date (see Details).
+#' @param output_lines Optional. The number of lines to output (default: keep all lines).
 #' @param file A character string for the path and name of the output file.
 #' @details
-#' The arguments `min_val_before` and `min_val_new` can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500% increase but a small absolute change. Setting either `min_val_before` to a value > 0.1 or `min_val_new` to a value > 0.6 would censor this health region.
+#' The arguments `min_val_before` and `min_val_new` can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500% increase but a small absolute change. Setting either `min_val_before` to a value > 0.1 or `min_val_new` to a value > 0.6 would censor this health region. Setting `min_val_before` to 0 implicitly censors locations with 0 to > 0 and 0 to 0, whereas setting `min_val_after` to 0 implicitly censors locations with percent change = -100% and 0 to 0.
 #' @return A text file summarizing the trends in the selected value over a particular time range and set of locations. Includes emojis.
 #' @importFrom dplyr filter distinct pull arrange mutate case_when
 #' @export
 
 # report trends in rolling averages by province or health region
-trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, change_digits = 1, print_val = FALSE, print_val_digits = 1, min_val_before = NULL, min_val_new = NULL, file) {
+trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, change_digits = 1, print_val = FALSE, print_val_digits = 1, min_val_before = NULL, min_val_new = NULL, output_lines = NULL, file) {
 
   ## must select one mode: prov or hr
   if (identical(loc, c("all_prov", "all_hr"))) {
@@ -141,6 +142,10 @@ trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "
                              print_val ~ paste0(x$name, ": ", x$percent, " ", x$emoji, " (", x$before, " ", as.character(emo::ji("right_arrow")), " ", x$new, ")"),
                              TRUE ~ paste0(x$name, ": ", x$percent, " ", x$emoji)
                            )))
-  write.table(x, file = file, sep = "\n", row.names = FALSE, quote = FALSE, col.names = FALSE)
+  if (!is.null(output_lines)) {
+    write.table(x[1:(output_lines + 1), ], file = file, sep = "\n", row.names = FALSE, quote = FALSE, col.names = FALSE)
+  } else {
+    write.table(x, file = file, sep = "\n", row.names = FALSE, quote = FALSE, col.names = FALSE)
+  }
 
 }
