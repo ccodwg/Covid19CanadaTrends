@@ -1,9 +1,8 @@
 Package: Covid19CanadaTrends
 Title: COVID-19 Trends in Canada
-Version: 0.0.0.9000
+Version: 0.1
 Authors@R: 
-    person(given = "Jean-Paul",
-           middle = "R",
+    person(given = "Jean-Paul R.",
            family = "Soucy",
            role = c("aut", "cre"),
            email = "jeanpaul.r.soucy@gmail.com",
@@ -16,7 +15,8 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports: 
     dplyr,
+    magrittr,
     zoo,
-    emo (>= 0.0.0.9000)
-Remotes:  
+    emo
+Remotes: 
     hadley/emo
