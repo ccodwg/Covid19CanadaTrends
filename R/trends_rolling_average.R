@@ -28,21 +28,21 @@ rolling_average <- function(x, window_days = 7) {
 #' @param before_days The number of days before `new_date` to compare with to calculate the percent change (default: 7).
 #' @param window_days The length of the window in days for the rolling average (default = 7).
 #' @param threshold The percent threshold (in absolute value) for delineating a positive/negative trend from no change (default = 10).
-#' @param change_digits The number of digits to print for the percent change (defaults to 1).
 #' @param print_val Logical. Also print absolute changes in value from before date to new date? (Default = FALSE)
-#' @param print_val_digits The number of digits to print for absolute values (defaults to 1). Used if `print_val` is TRUE and when a location goes from 0/day on the before date to > 0/day on the new date.
+#' @param val_digits The number of digits to print for absolute values (defaults to 1). Used if `print_val` is TRUE and when a location goes from 0/day on the before date to > 0/day on the new date.
+#' @param change_digits The number of digits to print for the percent change (defaults to 1).
 #' @param min_val_before Optional. If set, remove locations with values below the stated number on the before date (see Details).
 #' @param min_val_new Optional. If set, remove locations with values below the stated number on the new date (see Details).
 #' @param output_lines Optional. The number of lines to output (default: keep all lines).
 #' @param file A character string for the path and name of the output file.
 #' @details
-#' The arguments `min_val_before` and `min_val_new` can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500% increase but a small absolute change. Setting either `min_val_before` to a value > 0.1 or `min_val_new` to a value > 0.6 would censor this health region. Setting `min_val_before` to 0 implicitly censors locations with 0 to > 0 and 0 to 0, whereas setting `min_val_after` to 0 implicitly censors locations with percent change = -100% and 0 to 0.
+#' The arguments `min_val_before` and `min_val_new` can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500% increase but a small absolute change. Setting either `min_val_before` to a value > 0.1 or `min_val_new` to a value > 0.6 would censor this health region. Setting `min_val_before` to 0 implicitly censors locations with 0 to > 0 and 0 to 0, whereas setting `min_val_new` to 0 implicitly censors locations with percent change = -100% and 0 to 0.
 #' @return A text file summarizing the trends in the selected value over a particular time range and set of locations. Includes emojis.
 #' @importFrom dplyr filter distinct pull arrange mutate case_when
 #' @export
 
 # report trends in rolling averages by province or health region
-trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, change_digits = 1, print_val = FALSE, print_val_digits = 1, min_val_before = NULL, min_val_new = NULL, output_lines = NULL, file) {
+trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, print_val = FALSE, val_digits = 1, change_digits = 1, min_val_before = NULL, min_val_new = NULL, output_lines = NULL, file) {
 
   ## must select one mode: prov or hr
   if (identical(loc, c("all_prov", "all_hr"))) {
@@ -120,8 +120,8 @@ trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "
         change > threshold ~ as.character(emo::ji("chart_with_upwards_trend")),
         change < -threshold ~ as.character(emo::ji("chart_with_downwards_trend"))
       ),
-      before = paste0(formatC(before, digits = print_val_digits, format = "f", big.mark = ","), "/day"),
-      new = paste0(formatC(new, digits = print_val_digits, format = "f", big.mark = ","), "/day"),
+      before = paste0(formatC(before, digits = val_digits, format = "f", big.mark = ","), "/day"),
+      new = paste0(formatC(new, digits = val_digits, format = "f", big.mark = ","), "/day"),
       percent = ifelse(!is.infinite(change) & !is.nan(change), paste0(formatC(change, digits = change_digits, format = "f", big.mark = ",", flag = "+"), "%"), change),
     )
 
