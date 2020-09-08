@@ -28,15 +28,20 @@ rolling_average <- function(x, window_days = 7) {
 #' @param before_days The number of days before `new_date` to compare with to calculate the percent change (default: 7).
 #' @param window_days The length of the window in days for the rolling average (default = 7).
 #' @param threshold The percent threshold (in absolute value) for delineating a positive/negative trend from no change (default = 10).
-#' @param print_abs Logical. Print absolute change in value from before date to new date? (Default = FALSE)
-#' @param print_abs_digits If `print_abs` is TRUE, the number of digits to print (defaults to 1).
+#' @param change_digits The number of digits to print for the percent change (defaults to 1).
+#' @param print_val Logical. Also print absolute changes in value from before date to new date? (Default = FALSE)
+#' @param print_val_digits The number of digits to print for absolute values (defaults to 1). Used if `print_val` is TRUE and when a location goes from 0/day on the before date to > 0/day on the new date.
+#' @param min_val_before Optional. If set, remove locations with values below the stated number on the before date (see Details).
+#' @param min_val_new Optional. If set, remove locations with values below the stated number on the new date (see Details).
 #' @param file A character string for the path and name of the output file.
+#' @details
+#' The arguments `min_val_before` and `min_val_new` can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500% increase but a small absolute change. Setting either `min_val_before` to a value > 0.1 or `min_val_new` to a value > 0.6 would censor this health region.
 #' @return A text file summarizing the trends in the selected value over a particular time range and set of locations. Includes emojis.
 #' @importFrom dplyr filter distinct pull arrange mutate case_when
 #' @export
 
 # report trends in rolling averages by province or health region
-trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, print_abs = FALSE, file) {
+trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, change_digits = 1, print_val = FALSE, print_val_digits = 1, min_val_before = NULL, min_val_new = NULL, file) {
 
   ## must select one mode: prov or hr
   if (identical(loc, c("all_prov", "all_hr"))) {
@@ -77,37 +82,49 @@ trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "
   avg_new <- x %>%
     filter(date == new_date) %>%
     pull("rolling_avg")
-  avg_old <- x %>%
+  avg_before <- x %>%
     filter(date == new_date - before_days) %>%
     pull("rolling_avg")
   x <- {if (m == "prov") {
     data.frame(
       prov = loc,
-      old = avg_old,
+      before = avg_before,
       new = avg_new,
-      change = (avg_new - avg_old) / avg_old * 100
+      change = (avg_new - avg_before) / avg_before * 100
     )
   } else {
     data.frame(
       prov = loc$province_short,
       hr = loc$health_region,
-      old = avg_old,
+      before = avg_before,
       new = avg_new,
-      change = (avg_new - avg_old) / avg_old * 100
+      change = (avg_new - avg_before) / avg_before * 100
     )
   }
   } %>%
-    arrange(desc(change)) %>%
+    {if (!is.null(min_val_before)) filter(., before >= min_val_before) else .} %>%
+    {if (!is.null(min_val_new)) filter(., new >= min_val_new) else .} %>%
     mutate(
+      order_results = case_when(
+        is.infinite(change) ~ 2,
+        is.nan(change) ~ 3,
+        TRUE ~ 1
+      )
+    ) %>%
+    arrange(order_results, desc(change), desc(new), desc(before)) %>%
+    mutate(
+      name = {if (m == "hr") paste0(hr, " (", prov, ")") else prov},
       emoji = case_when(
         abs(change) < threshold ~ as.character(emo::ji("heavy_minus_sign")),
         change > threshold ~ as.character(emo::ji("chart_with_upwards_trend")),
         change < -threshold ~ as.character(emo::ji("chart_with_downwards_trend"))
       ),
-      old = paste0(formatC(old, digits = 1, format = "f", big.mark = ","), "/day"),
-      new = paste0(formatC(new, digits = 1, format = "f", big.mark = ","), "/day"),
-      change = paste0(formatC(change, digits = 1, format = "f", big.mark = ",", flag = "+"), "%"),
+      before = paste0(formatC(before, digits = print_val_digits, format = "f", big.mark = ","), "/day"),
+      new = paste0(formatC(new, digits = print_val_digits, format = "f", big.mark = ","), "/day"),
+      percent = ifelse(!is.infinite(change) & !is.nan(change), paste0(formatC(change, digits = change_digits, format = "f", big.mark = ",", flag = "+"), "%"), change),
     )
+
+  ## convert to text output
   if (stat == "cases") {
     topline <- paste0("Percent change in 7-day rolling average of cases compared to one week ago (threshold: ", threshold, "% change)")
   } else if (stat == "mortality") {
@@ -117,19 +134,13 @@ trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "
   } else if (stat == "testing") {
     topline <- paste0("Percent change in 7-day rolling average of completed tests compared to one week ago (threshold: ", threshold, "% change)")
   }
-  if (m == "prov") {
-    if (print_abs) {
-      x <- data.frame(line = c(topline, paste0(x$prov, ": ", x$change, " ", x$emoji, " (", x$old, " ", as.character(emo::ji("right_arrow")), " ", x$new, ")")))
-    } else {
-      x <- data.frame(line = c(topline, paste0(x$prov, ": ", x$change, " ", x$emoji)))
-    }
-  } else if (m == "hr") {
-    if (print_abs) {
-      x <- data.frame(line = c(topline, paste0(x$hr, " (", x$prov, "): ", x$change, " ", x$emoji, " (", x$old, " ", as.character(emo::ji("right_arrow")), " ", x$new, ")")))
-    } else {
-      x <- data.frame(line = c(topline, paste0(x$hr, " (", x$prov, "): ", x$change, " ", x$emoji)))
-    }
-  }
+  x <- data.frame(line = c(topline,
+                           case_when(
+                             is.infinite(x$change) ~ paste0(x$name, ": 0/day ", as.character(emo::ji("right_arrow")), " ", x$new),
+                             is.nan(x$change) ~ paste0(x$name, ": 0/day ", as.character(emo::ji("right_arrow")), " 0/day"),
+                             print_val ~ paste0(x$name, ": ", x$percent, " ", x$emoji, " (", x$before, " ", as.character(emo::ji("right_arrow")), " ", x$new, ")"),
+                             TRUE ~ paste0(x$name, ": ", x$percent, " ", x$emoji)
+                           )))
   write.table(x, file = file, sep = "\n", row.names = FALSE, quote = FALSE, col.names = FALSE)
 
 }

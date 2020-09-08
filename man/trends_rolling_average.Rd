@@ -12,7 +12,11 @@ trends_rolling_average(
   before_days = 7,
   window_days = 7,
   threshold = 10,
-  print_abs = FALSE,
+  change_digits = 1,
+  print_val = FALSE,
+  print_val_digits = 1,
+  min_val_before = NULL,
+  min_val_new = NULL,
   file
 )
 }
@@ -31,15 +35,24 @@ trends_rolling_average(
 
 \item{threshold}{The percent threshold (in absolute value) for delineating a positive/negative trend from no change (default = 10).}
 
-\item{print_abs}{Logical. Print absolute change in value from before date to new date? (Default = FALSE)}
+\item{change_digits}{The number of digits to print for the percent change (defaults to 1).}
+
+\item{print_val}{Logical. Also print absolute changes in value from before date to new date? (Default = FALSE)}
+
+\item{print_val_digits}{The number of digits to print for absolute values (defaults to 1). Used if \code{print_val} is TRUE and when a location goes from 0/day on the before date to > 0/day on the new date.}
+
+\item{min_val_before}{Optional. If set, remove locations with values below the stated number on the before date (see Details).}
+
+\item{min_val_new}{Optional. If set, remove locations with values below the stated number on the new date (see Details).}
 
 \item{file}{A character string for the path and name of the output file.}
-
-\item{print_abs_digits}{If \code{print_abs} is TRUE, the number of digits to print (defaults to 1).}
 }
 \value{
 A text file summarizing the trends in the selected value over a particular time range and set of locations. Includes emojis.
 }
 \description{
 Calculate and summarize percent change in rolling average in tweetable form
+}
+\details{
+The arguments \code{min_val_before} and \code{min_val_new} can be used to censor small absolute changes that correspond to huge percent changes. For example, suppose a health region goes from 0.1 cases/day -> 0.6 cases/day represents a 500\% increase but a small absolute change. Setting either \code{min_val_before} to a value > 0.1 or \code{min_val_new} to a value > 0.6 would censor this health region.
 }

@@ -2,7 +2,8 @@
 #' @name load_Covid19Canada
 #'
 #' @param x Character vector of the datasets to load: "all" (all time series), "all_prov" (all provincial time series), "all_hr" (all health region time series), or a vector of individual file names.
-#' @details Valid datasets include:
+#' @details
+#' Valid datasets include:
 #' * cases_ts_prov
 #' * mortality_ts_prov
 #' * active_ts_prov
