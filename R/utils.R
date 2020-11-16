@@ -83,7 +83,6 @@ load_Covid19Canada <- function(x = c("all", "all_prov", "all_hr")) {
     }
   if (any(c("all", "all_hr", "cases_ts_hr") %in% x)) {
     cases_ts_hr <- read.csv("https://github.com/ishaberry/Covid19Canada/raw/master/timeseries_hr/cases_timeseries_hr.csv", stringsAsFactors = FALSE) %>%
-      inner_join(prov_map, by = "province") %>%
       inner_join(hr_map, by = c("province", "health_region")) %>%
       rename(
         date = date_report,
@@ -96,7 +95,6 @@ load_Covid19Canada <- function(x = c("all", "all_prov", "all_hr")) {
     }
   if (any(c("all", "all_hr", "mortality_ts_hr") %in% x)) {
     mortality_ts_hr <- read.csv("https://github.com/ishaberry/Covid19Canada/raw/master/timeseries_hr/mortality_timeseries_hr.csv", stringsAsFactors = FALSE) %>%
-      inner_join(prov_map, by = "province") %>%
       inner_join(hr_map, by = c("province", "health_region")) %>%
       rename(
         date = date_death_report,
