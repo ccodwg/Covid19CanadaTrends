@@ -7,7 +7,7 @@
 trends_rolling_average(
   x,
   stat = c("cases", "mortality", "active", "testing"),
-  new_date = get_update_date(),
+  new_date = Covid19CanadaData::ccodwg_update_date(),
   loc = c("all_prov", "all_hr"),
   before_days = 7,
   window_days = 7,

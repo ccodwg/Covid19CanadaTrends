@@ -42,7 +42,7 @@ rolling_average <- function(x, window_days = 7) {
 #' @export
 
 # report trends in rolling averages by province or health region
-trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = get_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, print_val = FALSE, val_digits = 1, change_digits = 1, min_val_before = NULL, min_val_new = NULL, output_lines = NULL, file) {
+trends_rolling_average <- function(x, stat = c("cases", "mortality", "active", "testing"), new_date = Covid19CanadaData::ccodwg_update_date(), loc = c("all_prov", "all_hr"), before_days = 7, window_days = 7, threshold = 10, print_val = FALSE, val_digits = 1, change_digits = 1, min_val_before = NULL, min_val_new = NULL, output_lines = NULL, file) {
 
   ## must select one mode: prov or hr
   if (identical(loc, c("all_prov", "all_hr"))) {

@@ -110,14 +110,3 @@ load_Covid19Canada <- function(x = c("all", "all_prov", "all_hr")) {
   invisible(list2env(mget(ls()), envir = parent.frame()))
 
 }
-
-#' Get most recent update date of the COVID-19 Canada Open Data Working Group dataset
-#' @name get_update_date
-#'
-#' @export
-
-get_update_date <- function() {
-
-  as.Date(readLines("https://github.com/ishaberry/Covid19Canada/raw/master/update_time.txt"))
-
-}
